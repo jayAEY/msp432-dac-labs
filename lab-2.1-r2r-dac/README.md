@@ -43,9 +43,8 @@ Each file below is an independent application that must be compiled and flashed 
 * **Parts A–C:** These run free in the main loop without a hardware timer. Output frequency depends entirely on compiler optimizations and CPU execution speed.
 * **Part D & E (Timer32_0):** Configured with SMCLK = 3 MHz and a period register value of 1874 (1875 total clock cycles per tick).
 
-\[\text{ISR Rate} = \frac{3,000,000\text{ Hz}}{1875} = 1600\text{ Hz}\]
-
-\[\text{Sine Wave Frequency} = \frac{1600\text{ Hz}}{16\text{ steps}} = 100\text{ Hz}\]
+* **ISR Rate:** 3,000,000 Hz / 1875 = **1600 Hz**
+* **Sine Wave Frequency:** 1600 Hz / 16 steps = **100 Hz**
 
 * **Part E Dynamics:** Pressing S1 doubles the timer step delay to drop the final sine frequency to **50 Hz**. Pressing S2 bit-shifts the lookup table output values right by 1 to cut the amplitude exactly in half.
 
