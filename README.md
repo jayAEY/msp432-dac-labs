@@ -1,6 +1,9 @@
 # 🌊 MSP432 DAC & Waveform Generation Labs
 
-Two embedded systems labs that generate analog waveforms — **sawtooth**, **triangle**, and **sine** — on a **TI MSP432P401R** LaunchPad. The first builds a DAC from an **R-2R resistor ladder**; the second replaces the ladder with the on-chip **PWM generator**, filtered by an RC low-pass into a clean analog signal. Written in C with TI DriverLib for an Embedded Systems course at RRC Polytech.
+Two embedded systems labs focused on generating analog waveforms (**sawtooth**, **triangle**, and **sine**) using a **TI MSP432P401R** LaunchPad. 
+
+The first lab builds a manual DAC from scratch using an **R-2R resistor ladder**. The second lab replaces the resistor ladder by using the MSP432's built-in **PWM generator** paired with an RC low-pass filter to smooth the signal into a clean analog wave. 
+
 
 ## 📦 Labs in this repo
 
@@ -9,23 +12,23 @@ Two embedded systems labs that generate analog waveforms — **sawtooth**, **tri
 | [`lab-2.1-r2r-dac`](./lab-2.1-r2r-dac) | 8-bit R-2R resistor ladder on Port 4 | Timer32_0 (ISR) | Lookup-table waveform synthesis, GPIO-driven DAC, switch-controlled amplitude/frequency |
 | [`lab-3.1-pwm-dac`](./lab-3.1-pwm-dac) | PWM output + RC reconstruction filter | TimerA_0 (PWM) + Timer32_0 (ISR) | PWM frequency/duty-cycle configuration, live CCR register updates from an ISR |
 
-## 🛠️ Hardware
-- TI MSP432P401R LaunchPad (SMCLK @ 3 MHz)
-- 8-bit R-2R resistor ladder (Lab 2.1)
-- Single-pole RC low-pass filter (R=10kΩ, C=0.1–0.15µF) to reconstruct the analog waveform
-- Oscilloscope for waveform capture/verification
+---
 
-## ⚙️ Firmware
-- C, TI DriverLib for MSP432
-- Code Composer Studio projects
-- Sine lookup tables precomputed offline and stored in flash
+## 🔬 Testing & Hardware Setup
 
-## 🎯 Skills demonstrated
-- Low-level register/peripheral configuration (Timer32, TimerA, PWM, GPIO, interrupts)
-- Designing firmware interfaces that sit directly on top of hardware (ISR-driven DAC output)
-- Signal reconstruction & basic analog filtering
-- Bench validation of firmware behavior against calculated expectations (oscilloscope)
-- Clear technical documentation of design decisions and results
+### 🛠️ Hardware Components
+* **TI MSP432P401R LaunchPad** (SMCLK configured to 3 MHz)
+* **8-bit R-2R resistor ladder** (used for Lab 2.1)
+* RC low-pass filter (R=10kΩ, C=0.1–0.15µF) to smooth the PWM waveform
+* **Oscilloscope** to capture and verify the final waveforms
+
+### 💻 Firmware Implementation
+* Developed in **C** using **TI DriverLib** for MSP432
+* Programmed and built with **Code Composer Studio (CCS)**
+* **Sine Generation:** Lookup tables precomputed offline and stored in flash to keep execution fast
+* **Interrupt Handling:** Low-level register and peripheral setup (Timer32, TimerA, PWM, and GPIO interrupts) to handle timing-critical signal output
+
+---
 
 ## 📁 Repo structure
 ```
