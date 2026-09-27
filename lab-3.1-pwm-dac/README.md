@@ -30,7 +30,7 @@ Each file below is an independent application that must be compiled and flashed 
 | **A** | [`main_A_pwm_33pct.c`](./src/main_A_pwm_33pct.c) | Hardware PWM | Configures TimerA_0 to run continuously at a fixed 33% duty cycle. Used for baseline scope calibration. |
 | **B** | [`main_B_pwm_sawtooth.c`](./src/main_B_pwm_sawtooth.c) | ISR-driven | Generates a sawtooth envelope. A Timer32 interrupt triggers every 5 ms to incrementally ramp the TimerA CCR1 register from 0 to 255. |
 | **C** | [`main_C_pwm_sine.c`](./src/main_C_pwm_sine.c) | ISR-driven | Generates a sine wave. The same 5 ms Timer32 interrupt streams the 16-entry lookup table values directly into the CCR1 register. |
-| **D** | *(Hardware only)* | Analog Filter | A single-pole RC filter (R = 10 kΩ, C = 0.1 μF) used to strip away the high-frequency PWM switching carrier, leaving behind the smooth analog wave. |
+| **D** | *(Hardware only)* | Analog Filter | A RC filter (R = 10 kΩ, C = 0.1 μF) used to strip away the high-frequency PWM switching carrier, leaving behind the smooth analog wave. |
 
 ---
 
