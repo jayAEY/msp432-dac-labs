@@ -34,7 +34,7 @@ Each file below is an independent application that must be compiled and flashed 
 | **C** | [`main_C_sine_lookup.c`](./src/main_C_sine_lookup.c) | Free-running | Steps through a 16-entry lookup table inside the main loop to build a rough sine wave. |
 | **D** | [`main_D_sine_timer32_isr.c`](./src/main_D_sine_timer32_isr.c) | ISR-driven | Uses the same 16-entry table, but introduces a Timer32_0 interrupt to clock out steps at a precise, stable 100 Hz rate. |
 | **E** | [`main_E_sine_switch_control.c`](./src/main_E_sine_switch_control.c) | ISR-driven | Expands on Part D by adding live control via onboard switches. S1 toggles the frequency (100 Hz / 50 Hz) and S2 toggles the amplitude (100% / 50%). |
-| **F** | *(Hardware only)* | Analog Filter | A single-pole RC filter (R = 10 kΩ, C = 0.1 to 0.15 μF) used to smooth out the stair-step DAC steps into a continuous wave. |
+| **F** | *(Hardware only)* | Analog Filter | A RC filter (R = 10 kΩ, C = 0.1 to 0.15 μF) used to smooth out the stair-step DAC steps into a continuous wave. |
 
 ---
 
