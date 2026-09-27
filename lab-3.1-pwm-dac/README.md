@@ -41,27 +41,24 @@ All exercises configure the sub-master clock (SMCLK) to run at **3 MHz**.
 ### Part A: Fixed PWM
 * **Period Register (CCR0):** 15,000
 * **Duty Cycle Register (CCR1):** 4,950
-
-\[\text{PWM Frequency} = \frac{3,000,000\text{ Hz}}{15,000} = 200\text{ Hz}\]
-
-\[\text{Duty Cycle} = \frac{4,950}{15,000} = 33\%\]
+* **PWM Frequency:** 3,000,000 Hz / 15,000 = **200 Hz**
+* **Duty Cycle:** 4,950 / 15,000 = **33%**
 
 ### Part B & C: PWM Carrier & Interrupt Pacing
-The PWM module is configured with a \(/2\) clock prescaler and a period length of 256 clock counts (\(\text{CCR0} = 255\)). 
+The PWM module uses a /2 clock prescaler and a period length of 256 clock counts (CCR0 = 255).
+* **PWM Carrier Frequency:** 3,000,000 Hz / 2 / 256 = **5859 Hz**
 
-\[\text{PWM Carrier Frequency} = \frac{3,000,000\text{ Hz}}{2 \times 256} \approx 5859\text{ Hz}\]
+The pacing clock (Timer32_0) uses a period register value of 15,000 to trigger an update interrupt every 5 ms:
+* **ISR Update Rate:** 3,000,000 Hz / 15,000 = **200 Hz**
 
-The pacing clock (**Timer32_0**) uses a period register value of 15,000 to trigger an update interrupt every 5 ms:
-
-\[\text{ISR Update Rate} = \frac{3,000,000\text{ Hz}}{15,000} = 200\text{ Hz}\]
-
+Waveform Generation Outputs:
 * **Part B Sawtooth Wave:** The duty cycle increments by 1 step every ISR tick and wraps around every 256 counts.
-\[\text{Sawtooth Frequency} = \frac{200\text{ Hz ISR Rate}}{256\text{ steps}} \approx 0.78\text{ Hz}\]
-
+  * Sawtooth Frequency = 200 Hz ISR / 256 steps = **0.78 Hz**
 * **Part C Sine Wave:** The duty cycle streams values out of the 16-entry sine table every ISR tick.
-\[\text{Sine Wave Frequency} = \frac{200\text{ Hz ISR Rate}}{16\text{ steps}} = 12.5\text{ Hz}\]
+  * Sine Wave Frequency = 200 Hz ISR / 16 steps = **12.5 Hz**
 
 ---
+
 
 ## 📁 Files
 * [`src/main_A_pwm_33pct.c`](./src/main_A_pwm_33pct.c)
