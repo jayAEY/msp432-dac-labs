@@ -1,35 +1,58 @@
-# Lab 2.1 – R-2R DAC Waveform Generator
+# 🎛️ Lab 2.1 – R-2R DAC Waveform Generator
 
-Generates sawtooth, triangle, and sine waveforms with an 8-bit R-2R resistor-ladder DAC driven from Port 4 of the MSP432P401R, with real-time control over amplitude and frequency from the LaunchPad's onboard switches.
+A collection of standalone programs that explore analog waveform generation using an **8-bit R-2R resistor ladder** driven from Port 4 of the MSP432P401R. 
+Each file is an independent exercise, culminating in a final program that uses onboard switches to dynamically control a sine wave's frequency and amplitude.
 
-## Wiring
-| MSP432 | Connects to |
-| :--- | :--- |
-| P4.0 – P4.7 | R-2R resistor ladder inputs (8-bit value) |
-| Ladder output (DAC-VOUT) | Oscilloscope / RC filter input |
-| P1.1, P1.4 | Onboard switches — amplitude & frequency select |
+## 🚀 Lab Overview
 
-## Parts
+* **Standalone Exercises:** Separate source files cover individual waveform types (sawtooth, triangle, or sine).
+* **8-bit discrete DAC:** Built manually using an external resistor ladder.
+* **Live Switch Control:** Features live frequency and amplitude scaling (implemented only in the final sine wave program, Part E).
 
-| Part | File | What it adds |
+---
+
+## 🔬 Hardware Setup & Wiring
+
+### Pin Assignments
+
+| MSP432 Port | Connected Hardware | Description |
 | :--- | :--- | :--- |
-| **A / B** | [`main_A_B_sawtooth_triangle.c`](./src/main_A_B_sawtooth_triangle.c) | Sawtooth or triangle wave from a free-running software counter in the main loop, selected at compile time via `#define SAWTOOTH` / `#define TRIANGLE` |
-| **C** | [`main_C_sine_lookup.c`](./src/main_C_sine_lookup.c) | Sine wave from a 16-entry lookup table, also free-running in the main loop |
-| **D** | [`main_D_sine_timer32_isr.c`](./src/main_D_sine_timer32_isr.c) | Same lookup table, now clocked out by a Timer32_0 ISR at a fixed rate for a controlled 100Hz sine wave |
-| **E** | [`main_E_sine_switch_control.c`](./src/main_E_sine_switch_control.c) | Onboard switches (P1.1, P1.4) scale frequency (100Hz/50Hz) and amplitude (100%/50%) live, by dividing the ISR's step rate and the table's output value respectively |
-| **F** | *(hardware only, no code)* | Single-pole RC filter (R=10kΩ, C=0.1–0.15µF) smooths the stair-step DAC output into a continuous analog waveform |
+| **`P4.0 – P4.7`** | R-2R Resistor Ladder | Inputs for the 8-bit digital value |
+| **`DAC-VOUT`** | Oscilloscope / Filter Input | The combined analog output from the ladder |
+| **`P1.1`** | Onboard Switch (S1) | Frequency selection (Used in Part E only) |
+| **`P1.4`** | Onboard Switch (S2) | Amplitude selection (Used in Part E only) |
 
-## Key calculations
-Parts A–C are free-running (no timer), so their output rate depends on the CPU's loop speed rather than a fixed clock — no fixed frequency to calculate.
+---
 
-Part D onward uses Timer32_0 with SMCLK = 3MHz and a period register of 1874 (i.e. 1875 clock cycles):
-- ISR rate = 3,000,000 Hz / 1875 = **1600 Hz**
-- Sine table has 16 entries, so one full cycle = 16 ISR ticks → sine frequency = 1600 / 16 = **100 Hz** ✅ matches the lab target
+## ⚙️ Program Breakdown
 
-Part E divides that same 1600Hz step rate by 2 when SW1 is pressed → **50 Hz** sine, and divides the output *value* by 2 when SW2 is pressed → roughly half amplitude.
+Each file below is an independent application that must be compiled and flashed separately.
 
-## Files
-- [`src/main_A_B_sawtooth_triangle.c`](./src/main_A_B_sawtooth_triangle.c)
-- [`src/main_C_sine_lookup.c`](./src/main_C_sine_lookup.c)
-- [`src/main_D_sine_timer32_isr.c`](./src/main_D_sine_timer32_isr.c)
-- [`src/main_E_sine_switch_control.c`](./src/main_E_sine_switch_control.c)
+| Part | Source File | Type | Notes |
+| :--- | :--- | :--- | :--- |
+| **A / B** | [`main_A_B_sawtooth_triangle.c`](./src/main_A_B_sawtooth_triangle.c) | Free-running | Generates either a sawtooth or a triangle wave using a software counter. Choose the wave type at compile time via `#define SAWTOOTH` or `#define TRIANGLE`. |
+| **C** | [`main_C_sine_lookup.c`](./src/main_C_sine_lookup.c) | Free-running | Steps through a 16-entry lookup table inside the main loop to build a rough sine wave. |
+| **D** | [`main_D_sine_timer32_isr.c`](./src/main_D_sine_timer32_isr.c) | ISR-driven | Uses the same 16-entry table, but introduces a Timer32_0 interrupt to clock out steps at a precise, stable 100 Hz rate. |
+| **E** | [`main_E_sine_switch_control.c`](./src/main_E_sine_switch_control.c) | ISR-driven | Expands on Part D by adding live control via onboard switches. S1 toggles the frequency (100 Hz / 50 Hz) and S2 toggles the amplitude (100% / 50%). |
+| **F** | *(Hardware only)* | Analog Filter | A single-pole RC filter (R = 10 kΩ, C = 0.1 to 0.15 μF) used to smooth out the stair-step DAC steps into a continuous wave. |
+
+---
+
+## 📐 Timing Calculations
+
+* **Parts A–C:** These run free in the main loop without a hardware timer. Output frequency depends entirely on compiler optimizations and CPU execution speed.
+* **Part D & E (Timer32_0):** Configured with SMCLK = 3 MHz and a period register value of 1874 (1875 total clock cycles per tick).
+
+\[\text{ISR Rate} = \frac{3,000,000\text{ Hz}}{1875} = 1600\text{ Hz}\]
+
+\[\text{Sine Wave Frequency} = \frac{1600\text{ Hz}}{16\text{ steps}} = 100\text{ Hz}\]
+
+* **Part E Dynamics:** Pressing S1 doubles the timer step delay to drop the final sine frequency to **50 Hz**. Pressing S2 bit-shifts the lookup table output values right by 1 to cut the amplitude exactly in half.
+
+---
+
+## 📁 Files
+* [`src/main_A_B_sawtooth_triangle.c`](./src/main_A_B_sawtooth_triangle.c)
+* [`src/main_C_sine_lookup.c`](./src/main_C_sine_lookup.c)
+* [`src/main_D_sine_timer32_isr.c`](./src/main_D_sine_timer32_isr.c)
+* [`src/main_E_sine_switch_control.c`](./src/main_E_sine_switch_control.c)
