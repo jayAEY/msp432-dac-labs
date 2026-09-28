@@ -1,8 +1,8 @@
 # 🌊 MSP432 DAC & Waveform Generation Labs
 
-Two embedded systems labs focused on generating analog waveforms (**sawtooth**, **triangle**, and **sine**) using a **TI MSP432P401R** LaunchPad. 
+A collection of labs from my Embedded Systems class focused on generating analog waveforms (**sawtooth**, **triangle**, and **sine**) using a **TI MSP432P401R** LaunchPad. 
 
-The first lab builds a manual DAC from scratch using an **R-2R resistor ladder**. The second lab replaces the resistor ladder by using the MSP432's built-in **PWM generator** paired with an RC low-pass filter to smooth the signal into a clean analog wave. 
+The first builds a manual DAC from scratch using an **R-2R resistor ladder**. The second replaces the resistor ladder by using the MSP432's built-in **PWM generator** paired with an RC low-pass filter to smooth the signal into a clean analog wave. 
 
 
 ## 📦 Labs in this repo
