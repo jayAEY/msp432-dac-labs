@@ -1,0 +1,17 @@
+# Code Composer Studio / CCS project build artifacts
+Debug/
+Release/
+*.metadata/
+*.launch
+*.pdb
+*.map
+*.out
+
+# TI DriverLib / linker intermediates
+*.obj
+*.d
+*.crc
+
+# OS junk
+.DS_Store
+Thumbs.db
