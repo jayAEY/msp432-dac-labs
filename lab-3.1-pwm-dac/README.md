@@ -1,66 +1,49 @@
-# 🎛️ Lab 3.1 – PWM DAC Waveform Generator
+# Lab 3.1 – PWM DAC
 
-Replaces the external R-2R resistor ladder from Lab 2.1 by using the MSP432's internal **TimerA PWM generator**. The high-frequency switching output is passed through an RC low-pass filter to smooth and reconstruct analog sawtooth and sine waveforms. 
+Builds on Lab 2.1 by replacing the R-2R ladder with the MSP432's TimerA PWM generator, filtered through an RC low-pass to reconstruct sawtooth and sine waveforms from a switching output. SMCLK (TimerA's clock) runs at 3 MHz throughout.
 
-## 🚀 Lab Overview
+## Wiring
+| MSP432 | Connects to |
+| :--- | :--- |
+| P2.4 (TA0.1 PWM output) | Oscilloscope, then RC filter input |
 
-* **PWM Reconstruction:** Converts digital pulse-width modulation into true analog signals using basic hardware filtering.
-* **Dynamic Duty Cycle:** Uses background timer interrupts to update the Capture/Compare registers on-the-fly.
-* **Standalone Exercises:** Independent source files exploring fixed duty cycles, sawtooth generation, and table-driven sine generation.
+## Parts
 
----
-
-## 🔬 Hardware Setup & Wiring
-
-### Pin Assignments
-
-| MSP432 Port | Connected Hardware | Description |
+| Part | File | What it adds |
 | :--- | :--- | :--- |
-| **`P2.4`** | TA0.1 PWM Output | Connects to the oscilloscope channel and the input of the RC filter |
-| **`Filter Output`** | Oscilloscope Channel 2 | Cleaned analog signal monitored alongside the raw PWM wave |
+| **A** | [`main_A_pwm_33pct.c`](./src/main_A_pwm_33pct.c) | TimerA_0 configured for PWM at a fixed 33% duty cycle |
+| **B** | [`main_B_pwm_sawtooth.c`](./src/main_B_pwm_sawtooth.c) | Sawtooth wave: a Timer32 interrupt every 5ms ramps TimerA's CCR1 compare value from 0→255, producing a stepped sawtooth envelope on the PWM output |
+| **C** | [`main_C_pwm_sine.c`](./src/main_C_pwm_sine.c) | Sine wave: the same Timer32 ISR instead replays the Lab 2.1 16-entry lookup table into CCR1 |
+| **D** | *(hardware only, no code)* | RC filter (R=10kΩ, C=0.1µF) applied to the raw PWM output; raw vs. filtered waveform compared on the scope |
 
----
+## Key calculations
+All parts run TimerA off SMCLK = 3MHz.
 
-## ⚙️ Program Breakdown
+**Part A** — CCR0 = 14999 (15,000 counts per period), CCR1 = 4950:
+- PWM frequency = 3,000,000 / 15,000 = **200 Hz**
+- Duty cycle = 4950 / 15000 = **33%** ✅ matches the lab target
 
-Each file below is an independent application that must be compiled and flashed separately.
+**Part B** — CCR0 = 255 with a /2 prescaler, Timer32 period register = 14999 (15,000 cycles):
+- PWM carrier frequency = 3,000,000 / 2 / 256 ≈ **5859 Hz**
+- Timer32 ISR rate = 3,000,000 / 15,000 = **200 Hz** (5 ms period, as specified)
+- CCR1 is stepped by 1 each ISR and wraps every 256 steps → sawtooth envelope frequency = 200 / 256 ≈ **0.78 Hz**
 
-| Part | Source File | Type | Notes |
-| :--- | :--- | :--- | :--- |
-| **A** | [`main_A_pwm_33pct.c`](./src/main_A_pwm_33pct.c) | Hardware PWM | Configures TimerA_0 to run continuously at a fixed 33% duty cycle. Used for baseline scope calibration. |
-| **B** | [`main_B_pwm_sawtooth.c`](./src/main_B_pwm_sawtooth.c) | ISR-driven | Generates a sawtooth envelope. A Timer32 interrupt triggers every 5 ms to incrementally ramp the TimerA CCR1 register from 0 to 255. |
-| **C** | [`main_C_pwm_sine.c`](./src/main_C_pwm_sine.c) | ISR-driven | Generates a sine wave. The same 5 ms Timer32 interrupt streams the 16-entry lookup table values directly into the CCR1 register. |
-| **D** | *(Hardware only)* | Analog Filter | A RC filter (R = 10 kΩ, C = 0.1 μF) used to strip away the high-frequency PWM switching carrier, leaving behind the smooth analog wave. |
+**Part C** — same PWM/Timer32 setup as Part B, but CCR1 is loaded from a 16-entry sine table each ISR tick:
+- Sine frequency = 200 Hz ISR rate / 16 samples = **12.5 Hz** ✅ matches the lab target
 
----
+## Results
+Scope captures of the 12.5 Hz sine. Cyan is the raw PWM pin (P2.4), yellow is the RC-filtered output.
 
-## 📐 Timing Calculations
+| Capture | Scope reading | What it shows |
+| :--- | :--- | :--- |
+| 12.5 Hz sine (`pwm_12_5hz_raw_vs_filtered.jpg`) | Filtered: 12.53 Hz, max 3.36 V (raw at 2 V/div, 25 ms/div) | Matches the 12.5 Hz calculation. At this timebase the raw PWM reads as a solid band, and the filtered output shows the 16-step staircase from the 200 Hz update rate |
+| Zoomed in (`pwm_12_5hz_zoom.jpg`) | Raw pulse period ≈ 170 µs (≈ 5.9 kHz), max 3.36 V (2 V/div, 250 µs/div) | Individual PWM pulses (cyan) with the filtered output (yellow) nearly flat, showing how little ripple gets through the RC filter |
 
-All exercises configure the sub-master clock (SMCLK) to run at **3 MHz**.
+![12.5 Hz PWM sine, raw and filtered](./results/pwm_12_5hz_raw_vs_filtered.jpg)
 
-### Part A: Fixed PWM
-* **Period Register (CCR0):** 15,000
-* **Duty Cycle Register (CCR1):** 4,950
-* **PWM Frequency:** 3,000,000 Hz / 15,000 = **200 Hz**
-* **Duty Cycle:** 4,950 / 15,000 = **33%**
+![12.5 Hz PWM sine, zoomed in](./results/pwm_12_5hz_zoom.jpg)
 
-### Part B & C: PWM Carrier & Interrupt Pacing
-The PWM module uses a /2 clock prescaler and a period length of 256 clock counts (CCR0 = 255).
-* **PWM Carrier Frequency:** 3,000,000 Hz / 2 / 256 = **5859 Hz**
-
-The pacing clock (Timer32_0) uses a period register value of 14999 (15000 total clock cycles per tick.) to trigger an update interrupt every 5 ms:
-* **ISR Update Rate:** 3,000,000 Hz / 15,000 = **200 Hz**
-
-Waveform Generation Outputs:
-* **Part B Sawtooth Wave:** The duty cycle increments by 1 step every ISR tick and wraps around every 256 counts.
-  * Sawtooth Frequency = 200 Hz ISR / 256 steps = **0.78 Hz**
-* **Part C Sine Wave:** The duty cycle streams values out of the 16-entry sine table every ISR tick.
-  * Sine Wave Frequency = 200 Hz ISR / 16 steps = **12.5 Hz**
-
----
-
-
-## 📁 Files
-* [`src/main_A_pwm_33pct.c`](./src/main_A_pwm_33pct.c)
-* [`src/main_B_pwm_sawtooth.c`](./src/main_B_pwm_sawtooth.c)
-* [`src/main_C_pwm_sine.c`](./src/main_C_pwm_sine.c)
+## Files
+- [`src/main_A_pwm_33pct.c`](./src/main_A_pwm_33pct.c)
+- [`src/main_B_pwm_sawtooth.c`](./src/main_B_pwm_sawtooth.c)
+- [`src/main_C_pwm_sine.c`](./src/main_C_pwm_sine.c)

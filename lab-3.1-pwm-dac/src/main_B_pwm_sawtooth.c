@@ -7,7 +7,7 @@
 #define CCR0_VAL 255     // TimerA rollover
 #define CCR1_VAL 0    // Pulse high time
 
-volatile uint32_t dutyCycle = 0;
+volatile uint8_t dutyCycle = 0; // Note - 8 bits handle rollover
 
 // Timer_A PWM Configuration. F = 5859 Hz
 Timer_A_PWMConfig pwmConfig =
