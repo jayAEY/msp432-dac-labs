@@ -17,7 +17,7 @@ Builds on Lab 2.1 by replacing the R-2R ladder with the MSP432's TimerA PWM gene
 | **D** | *(hardware only, no code)* | RC filter (R=10kΩ, C=0.1µF) applied to the raw PWM output; raw vs. filtered waveform compared on the scope |
 
 ## Key calculations
-All parts run TimerA off SMCLK = 3MHz.
+TimerA runs off SMCLK and Timer32 runs off MCLK; both are 3 MHz here.
 
 **Part A** — CCR0 = 14999 (15,000 counts per period), CCR1 = 4950:
 - PWM frequency = 3,000,000 / 15,000 = **200 Hz**
@@ -38,6 +38,8 @@ Scope captures of the 12.5 Hz sine. Cyan is the raw PWM pin (P2.4), yellow is th
 | :--- | :--- | :--- |
 | 12.5 Hz sine (`pwm_12_5hz_raw_vs_filtered.jpg`) | Filtered: 12.53 Hz, max 3.36 V (raw at 2 V/div, 25 ms/div) | Matches the 12.5 Hz calculation. At this timebase the raw PWM reads as a solid band, and the filtered output shows the 16-step staircase from the 200 Hz update rate |
 | Zoomed in (`pwm_12_5hz_zoom.jpg`) | Raw pulse period ≈ 170 µs (≈ 5.9 kHz), max 3.36 V (2 V/div, 250 µs/div) | Individual PWM pulses (cyan) with the filtered output (yellow) nearly flat, showing how little ripple gets through the RC filter |
+
+The filtered sine isn't perfectly smooth because the 16-entry table is only updated at 200 Hz, so the output is a staircase with a step every 5 ms. The single-pole RC filter (fc = 1/(2π · 10 kΩ · 0.1 µF) ≈ 159 Hz) has its corner close to that step rate and only rolls off at 20 dB/decade, so it attenuates the 200 Hz step content by just ~4 dB. The 5.86 kHz PWM carrier is far above the corner and is reduced by about 31 dB, which is why only a small ripple remains in the zoomed capture. More samples per cycle or a higher-order filter would give a cleaner sine.
 
 ![12.5 Hz PWM sine, raw and filtered](./results/pwm_12_5hz_raw_vs_filtered.jpg)
 

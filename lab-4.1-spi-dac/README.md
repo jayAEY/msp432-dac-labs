@@ -22,6 +22,26 @@ Drives a **Microchip MCP4901 8-bit SPI DAC** from the MSP432P401R using the **eU
 | **B** | [`main_B_spi_dac_timer32.c`](./src/main_B_spi_dac_timer32.c) | Moves the DAC write into `Write_MCP4901()`, then uses a Timer32 interrupt to toggle the output between ~1.0V and ~2.0V once per second |
 | **Extra** | [`main_extra_spi_sine.c`](./src/main_extra_spi_sine.c) | Not part of the lab. Same SPI driver, but writes a 16-entry sine table at 100Hz from the Timer32 ISR to match the other DACs |
 
+## MCP4901 command word
+Each sample is a 16-bit word sent MSB first as two bytes while /CS is low. Bits are numbered in the order they are clocked out. Field meanings are from the MCP4901/4911/4921 datasheet (Microchip DS22248A).
+
+| Bit | 15 | 14 | 13 | 12 | 11 – 4 | 3 – 0 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| Field | 0 | BUF | /GA | /SHDN | D7 – D0 | X |
+| Meaning | 0 = write to DAC | 1 = buffered VREF input | 1 = 1× gain, 0 = 2× gain | 1 = active, 0 = shutdown | 8-bit DAC value | Don't care |
+
+How the code builds it (`Write_MCP4901()`):
+- Byte 1 = `(DAC_CONFIG_BITS << 4) | (value >> 4)`, which is the config nibble followed by D7–D4
+- Byte 2 = `value << 4`, which is D3–D0 followed by four don't-care zeros
+- /CS goes low before the first byte and high after the second, then /LDAC is pulsed low and high to latch the new value onto VOUT
+
+Example with `DAC_CONFIG_BITS = 0b0111` (BUF = 1, 1× gain, active):
+
+| Output | DAC value | Byte 1 | Byte 2 |
+| :--- | :--- | :--- | :--- |
+| ~1.0 V | `0x4E` | `0x74` | `0xE0` |
+| ~2.0 V | `0x9B` | `0x79` | `0xB0` |
+
 ## Key calculations
 Part B assumes VREF = 3.3V and 1× output gain (GA = 1, command nibble `0b0111`).
 
@@ -30,7 +50,9 @@ Part B assumes VREF = 3.3V and 1× output gain (GA = 1, command nibble `0b0111`)
 - High level, D = 0x9B (155): 3.3 × 155 / 256 ≈ **1.998 V**
 - One LSB = 3.3 / 256 ≈ 12.9 mV, so exactly 1.0 V and 2.0 V aren't reachable
 
-Part B timing: Timer32 counts 2,999,999 → 3,000,000 cycles ÷ 3MHz SMCLK = **1.000 s** per toggle.
+Gain bit: with /GA = 0 (`0b0101`) the output doubles, so the same two values would give about 2.0 V and 4.0 V. The 4.0 V is above the 3.3 V supply, so that level would clip at the rail.
+
+Part B timing: Timer32 counts 2,999,999 → 3,000,000 cycles ÷ 3 MHz MCLK = **1.000 s** per toggle.
 
 Extra sine timing: ISR every 1,875 cycles → 3,000,000 ÷ 1,875 = **1600 Hz**, ÷ 16 samples = **100 Hz**. Each 16-bit SPI write takes 32 µs at 500kHz, well inside the 625 µs sample period.
 

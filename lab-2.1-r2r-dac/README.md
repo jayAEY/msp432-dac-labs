@@ -22,7 +22,7 @@ Generates sawtooth, triangle, and sine waveforms with an 8-bit R-2R resistor-lad
 ## Key calculations
 Parts A–C are unclocked (no timer), so their output rate depends on the CPU's loop speed rather than a fixed clock — no fixed frequency to calculate.
 
-Part D onward uses Timer32_0 with SMCLK = 3MHz and a period register of 1874 (i.e. 1875 clock cycles):
+Part D onward uses Timer32_0, which is clocked from MCLK (3 MHz here), with a period register of 1874 (i.e. 1875 clock cycles):
 - ISR rate = 3,000,000 Hz / 1875 = **1600 Hz**
 - Sine table has 16 entries, so one full cycle = 16 ISR ticks → sine frequency = 1600 / 16 = **100 Hz** ✅ matches the lab target
 
